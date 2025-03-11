@@ -14,16 +14,16 @@ mnist_train = torchvision.datasets.MNIST(root='./data', train=True, download=Tru
 
 # sample 1000 images
 random.seed(123)
-subset_indices = random.choices(range(60000), k=1000)  # First 1000 samples
+subset_indices = random.choices(range(60000), k=100)  # First 1000 samples
 data = Subset(mnist_train, subset_indices)
 
 CF = utils.Perturbation(data)
 ########## black patches (removing part of digits)
-images_perturbed = CF.apply_black_patches(stride=2, patch_size=5) # output size: (1000 x #perturbed_images)
-utils.save_png(sample=images_perturbed[20][0][0]) # SEE SAMPLE!!
-utils.save_gif(sample=images_perturbed[20][0])
+images_black_patch = CF.apply_black_patches(stride=2, patch_width=4, patch_height=4) # output size: (1000 x #perturbed_images)
+sample_frame = random.choice(images_black_patch)[0]
+utils.save_gif(sample_frame, "mnist_black_patch.gif")
 
 ########## white patches (adding new part to digits)
-from importlib import reload
-reload(utils)
-images_perturbed = CF.apply_white_patches(stride=1, patch_size=4) # output size: (1000 x #perturbed_images)
+images_white_patch = CF.apply_white_patches(stride=2, patch_width=4, patch_height=4) # output size: (1000 x #perturbed_images)
+sample_frame = random.choice(images_white_patch)[0]
+utils.save_gif(sample_frame, "mnist_white_patch.gif")
