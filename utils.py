@@ -48,59 +48,59 @@ class Perturbation():
         return image_clone
 
     def _slide_black_patches(self, image, stride, patch_width, patch_height):
-        frames = []
+        images_perturbed = []
         for y in range(0, image.shape[1] - (patch_height - 1), stride):
             for x in range(0, image.shape[2] - (patch_width - 1), stride):
                 patched_image = self._attach_black_patch(image, x, y, patch_width, patch_height)
                 if (image != patched_image).sum() > patch_height*patch_width/2:
                 # if (image.bool() & (image != patched_image)).sum() > 0:
-                    frames.append(patched_image)
-        return frames
+                    images_perturbed.append(patched_image)
+        return images_perturbed
     
     def _slide_white_patches(self, image, stride, patch_width, patch_height):
-        frames = []
+        images_perturbed = []
         for y in range(0, image.shape[1] - (patch_height - 1), stride):
             for x in range(0, image.shape[2] - (patch_width - 1), stride):
                 patched_image = self._attach_white_patch(image, x, y, patch_width, patch_height)
                 if (image.bool() & (image != patched_image)).sum() > 0:
-                    frames.append(patched_image)
-        return frames
+                    images_perturbed.append(patched_image)
+        return images_perturbed
     
     def apply_black_patches(self, stride, patch_width, patch_height):
         """
         Apply black patches on digit area
         """
-        images_perturbed = []
+        result = []
         for image, label in tqdm(self.data):
-            frames = self._slide_black_patches(image, stride, patch_width, patch_height)
+            images_perturbed = self._slide_black_patches(image, stride, patch_width, patch_height)
             try:
-                frames = torch.stack(frames)
+                images_perturbed = torch.stack(images_perturbed)
             except:
                 print("Error: Patch size is too big! Reduce patch size or change random seed")
                 return None, None
-            images_perturbed.append((frames, label))
-        return images_perturbed
+            result.append((image, images_perturbed, label))
+        return result
     
     def apply_white_patches(self, stride, patch_width, patch_height):
         """
         Apply white patches on non-digit area
         """
-        images_perturbed = []
+        result = []
         for image, label in tqdm(self.data):
-            frames = self._slide_white_patches(image, stride, patch_width, patch_height)
+            images_perturbed = self._slide_white_patches(image, stride, patch_width, patch_height)
             try:
-                frames = torch.stack(frames)
+                images_perturbed = torch.stack(images_perturbed)
             except:
                 print("Error: Patch size is too big! Reduce patch size or change random seed")
                 return None, None
-            images_perturbed.append((frames, label))
-        return images_perturbed
+            result.append((image, images_perturbed, label))
+        return result
     
-def save_png(sample):
-    plt.imsave("image.png", sample.squeeze(), cmap='gray')
+def save_png(sample, file_name):
+    plt.imsave(file_name, sample.squeeze(), cmap='gray')
 
 def save_gif(sample, file_name):
-    imageio.mimsave(file_name, np.array(sample.squeeze())*256, fps=5)
+    imageio.mimsave(file_name, np.array(sample)*256, fps=5)
 
 if __name__ == "__main__":
     transform = transforms.Compose([transforms.ToTensor()])
@@ -116,10 +116,10 @@ if __name__ == "__main__":
     patch_width = 4
     patch_height = 4
 
-    images_perturbed = CF.apply_black_patches(stride, patch_width, patch_height) # output size: (1000 x #perturbed_images)
-    sample_frame = random.choice(images_perturbed)[0]
-    save_gif(sample_frame, "mnist_black_patch.gif")
+    result_black_patch = CF.apply_black_patches(stride, patch_width, patch_height) # output size: (1000 x #perturbed_images)
+    image_original, images_black_patch, label = random.choice(result_black_patch)
+    save_gif(images_black_patch.squeeze(), file_name="mnist_black_patch.gif")
 
-    images_perturbed = CF.apply_white_patches(stride, patch_width, patch_height) # output size: (1000 x #perturbed_images)
-    sample_frame = random.choice(images_perturbed)[0]
-    save_gif(sample_frame, "mnist_white_patch.gif")
+    result_white_patch = CF.apply_white_patches(stride, patch_width, patch_height) # output size: (1000 x #perturbed_images)
+    image_original, images_white_patch, label = random.choice(result_white_patch)
+    save_gif(images_white_patch.squeeze(), file_name="mnist_white_patch.gif")
