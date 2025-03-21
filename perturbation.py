@@ -23,8 +23,8 @@ PTB = utils.Perturbation(data)
 
 ########## black patches (removing part of digits)
 stride = 2
-patch_black_width = 8
-patch_black_height = 8
+patch_black_width = 10
+patch_black_height = 10
 result_black_patch = PTB.apply_black_patches(stride, patch_black_width, patch_black_height) # output size: (1000 x #perturbed_images)
 image_original, images_black_patch, label = random.choice(result_black_patch)
 utils.save_gif(images_black_patch.squeeze(), file_name="mnist_black_patch.gif")
@@ -32,7 +32,7 @@ utils.save_png(image_original, file_name="image.png")
 with open(f"data/test_black_patch_w{patch_black_width}h{patch_black_height}.pickle", 'wb') as f:
     pickle.dump(result_black_patch, f)
 
-########## black patches (removing part of digits)
+########## white patches (removing part of digits)
 stride = 2
 patch_white_width = 4
 patch_white_height = 4
